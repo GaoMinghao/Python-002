@@ -104,3 +104,10 @@ ITEM_PIPELINES = {
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+DB_INFO = {
+    'host': 'localhost',
+    'port': 3306,
+    'username': 'root',
+    'password': 'password',
+    'db': 'test'
+}

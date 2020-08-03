@@ -6,35 +6,44 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 import pymysql
 
-dbInfo = {
-    'host': 'localhost',
-    'port': 3306,
-    'user': 'root',
-    'password': 'password',
-    'db': 'test'
-}
-
 
 class MaoyanmoviePipeline:
+    def __init__(self, dbInfo):
+        self.host = dbInfo['host']
+        self.port = dbInfo['port']
+        self.username = dbInfo['username']
+        self.password = dbInfo['password']
+        self.db = dbInfo['db']
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            dbInfo=crawler.settings.get("DB_INFO")
+        )
+
+    def open_spider(self, spider):
+        self.conn = pymysql.connect(
+            host=self.host,
+            port=self.port,
+            user=self.username,
+            password=self.password,
+            db=self.db
+        )
+        self.cur = self.conn.cursor()
+
+    def close_spider(self, spider):
+        self.cur.close()
+        self.conn.close()
+
     def process_item(self, item, spider):
         title = item['title']
         movie_type = item['movie_type']
         release_date = item['release_date']
-        conn = pymysql.connect(
-            host=dbInfo['host'],
-            port=dbInfo['port'],
-            user=dbInfo['user'],
-            password=dbInfo['password'],
-            db=dbInfo['db']
-        )
-        cur = conn.cursor()
         try:
             sql = "insert into `maoyan_movie` (`name`,`type`,`release_date`) value (%s,%s,%s)"
-            cur.execute(sql, (title, movie_type, release_date))
-            conn.commit()
+            self.cur.execute(sql, (title, movie_type, release_date))
+            self.conn.commit()
         except Exception as e:
             print(e)
-            conn.rollback()
-        finally:
-            conn.close()
+            self.conn.rollback()
         return item
